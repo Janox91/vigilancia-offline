@@ -1,0 +1,60 @@
+{
+  "name": "control-vigilancia-pwa",
+  "version": "2.0.0",
+  "description": "Sistema de control de servicio de personal de vigilancia - PWA optimizada para móviles",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 8081 -c-1 -a 0.0.0.0",
+    "dev": "http-server -p 8081 -c-1 -a 0.0.0.0",
+    "build": "echo 'No build step required for static PWA'",
+    "test": "echo 'No tests specified'",
+    "lint": "echo 'No linting configured'",
+    "serve": "http-server -p 8081 -c-1 -a 0.0.0.0 --cors",
+    "serve-https": "http-server -p 8081 -c-1 -a 0.0.0.0 --ssl --cert cert.pem --key key.pem"
+  },
+  "keywords": [
+    "vigilancia",
+    "control",
+    "personal",
+    "asistencia",
+    "pwa",
+    "progressive-web-app",
+    "mobile",
+    "offline",
+    "planilla",
+    "reportes"
+  ],
+  "author": "Sistema de Control de Vigilancia",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usuario/control-vigilancia-pwa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/usuario/control-vigilancia-pwa/issues"
+  },
+  "homepage": "https://github.com/usuario/control-vigilancia-pwa#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "pwa": {
+    "name": "Control de Vigilancia",
+    "short_name": "Vigilancia",
+    "description": "Sistema de control de servicio de personal de vigilancia",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#2196F3",
+    "theme_color": "#2196F3",
+    "orientation": "portrait-primary"
+  }
+}

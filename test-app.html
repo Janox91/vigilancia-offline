@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba - Control de Vigilancia</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .warning { color: #ff9800; font-weight: bold; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #2196F3; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #1976D2; }
+        .btn-success { background: #4CAF50; }
+        .btn-success:hover { background: #45a049; }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid;
+        }
+        .status.success { 
+            background: #e8f5e8; 
+            border-left-color: #4CAF50; 
+        }
+        .status.error { 
+            background: #ffebee; 
+            border-left-color: #f44336; 
+        }
+        .status.warning { 
+            background: #fff3e0; 
+            border-left-color: #ff9800; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Prueba - Control de Vigilancia</h1>
+        
+        <div id="status" class="status warning">
+            <h3>⏳ Verificando estado...</h3>
+            <p>Esperando resultados de las pruebas...</p>
+        </div>
+        
+        <div id="tests">
+            <h2>📋 Pruebas Automáticas:</h2>
+            <div id="test-results"></div>
+        </div>
+        
+        <div id="actions">
+            <h2>🚀 Acciones:</h2>
+            <a href="http://localhost:8080" class="btn btn-success">🌐 Abrir Aplicación Principal</a>
+            <a href="diagnostico.html" class="btn">🔍 Página de Diagnóstico</a>
+            <button class="btn">🔄 Ejecutar Pruebas</button>
+        </div>
+        
+        <div id="manual-test">
+            <h2>📝 Prueba Manual:</h2>
+            <p>Si las pruebas automáticas fallan, sigue estos pasos:</p>
+            <ol>
+                <li>Haz clic en "Abrir Aplicación Principal"</li>
+                <li>Si la página no carga, verifica que el servidor esté ejecutándose</li>
+                <li>Si hay errores de JavaScript, abre las herramientas de desarrollador (F12)</li>
+                <li>Ve a la pestaña Console y comparte los errores</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function updateStatus(message, type = 'warning') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = `<h3>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⏳'} ${message}</h3>`;
+        }
+        
+        function addTestResult(test, result, details = '') {
+            const resultsDiv = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `status ${result}`;
+            div.innerHTML = `
+                <h4>${result === 'success' ? '✅' : '❌'} ${test}</h4>
+                ${details ? `<p>${details}</p>` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        }
+        
+        async function testServer() {
+            try {
+                const response = await fetch('http://localhost:8080/');
+                if (response.ok) {
+                    return { success: true, details: `Servidor respondiendo (${response.status})` };
+                } else {
+                    return { success: false, details: `Error del servidor (${response.status})` };
+                }
+            } catch (error) {
+                return { success: false, details: `No se puede conectar al servidor: ${error.message}` };
+            }
+        }
+        
+        async function testMainPage() {
+            try {
+                const response = await fetch('http://localhost:8080/index.html');
+                if (response.ok) {
+                    const text = await response.text();
+                    if (text.includes('app-container')) {
+                        return { success: true, details: 'Página principal cargada correctamente' };
+                    } else {
+                        return { success: false, details: 'Página cargada pero estructura incorrecta' };
+                    }
+                } else {
+                    return { success: false, details: `Error al cargar página (${response.status})` };
+                }
+            } catch (error) {
+                return { success: false, details: `Error al cargar página: ${error.message}` };
+            }
+        }
+        
+        async function testServiceWorker() {
+            try {
+                const response = await fetch('http://localhost:8080/sw.js');
+                if (response.ok) {
+                    return { success: true, details: 'Service Worker disponible' };
+                } else {
+                    return { success: false, details: `Service Worker no encontrado (${response.status})` };
+                }
+            } catch (error) {
+                return { success: false, details: `Error con Service Worker: ${error.message}` };
+            }
+        }
+        
+        async function testIcons() {
+            try {
+                const response = await fetch('http://localhost:8080/icons/icon-192x192.png');
+                if (response.ok) {
+                    return { success: true, details: 'Iconos disponibles' };
+                } else {
+                    return { success: false, details: `Iconos no encontrados (${response.status})` };
+                }
+            } catch (error) {
+                return { success: false, details: `Error con iconos: ${error.message}` };
+            }
+        }
+        
+        async function runTests() {
+            updateStatus('Ejecutando pruebas...', 'warning');
+            
+            // Limpiar resultados anteriores
+            document.getElementById('test-results').innerHTML = '';
+            
+            // Ejecutar pruebas
+            const tests = [
+                { name: 'Servidor Web', fn: testServer },
+                { name: 'Página Principal', fn: testMainPage },
+                { name: 'Service Worker', fn: testServiceWorker },
+                { name: 'Iconos', fn: testIcons }
+            ];
+            
+            let successCount = 0;
+            
+            for (const test of tests) {
+                const result = await test.fn();
+                addTestResult(test.name, result.success ? 'success' : 'error', result.details);
+                if (result.success) successCount++;
+            }
+            
+            // Resumen final
+            const totalTests = tests.length;
+            const successRate = Math.round((successCount / totalTests) * 100);
+            
+            if (successRate === 100) {
+                updateStatus(`¡Todas las pruebas pasaron! (${successCount}/${totalTests})`, 'success');
+            } else if (successRate >= 50) {
+                updateStatus(`La mayoría de las pruebas pasaron (${successCount}/${totalTests})`, 'warning');
+            } else {
+                updateStatus(`Varias pruebas fallaron (${successCount}/${totalTests})`, 'error');
+            }
+        }
+        
+        // Ejecutar pruebas automáticamente al cargar la página
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación - Control de Vigilancia</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #2196F3; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #1976D2; }
+        .btn-success { background: #4CAF50; }
+        .btn-success:hover { background: #45a049; }
+        .btn-error { background: #f44336; }
+        .btn-error:hover { background: #d32f2f; }
+        pre { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            border-left: 4px solid #2196F3;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificación de Elementos - Control de Vigilancia</h1>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h2>⏳ Redirigiendo a la aplicación principal...</h2>
+            <p>Esta página verificará los elementos en la aplicación principal.</p>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div id="status">
+                <h2>⏳ Verificando elementos del DOM...</h2>
+            </div>
+            
+            <div id="results"></div>
+            
+            <div id="actions" style="display: none;">
+                <h2>🚀 Acciones:</h2>
+                <div id="action-buttons"></div>
+            </div>
+            
+            <div id="debug-info">
+                <h2>🐛 Información de Depuración:</h2>
+                <pre id="debug-output"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Verificar si estamos en la página principal o en una página de verificación
+        function isMainApp() {
+            return window.location.pathname === '/' || 
+                   window.location.pathname === '/index.html' ||
+                   document.querySelector('.app-container') !== null;
+        }
+        
+        function redirectToMainApp() {
+            if (!isMainApp()) {
+                console.log('🔄 Redirigiendo a la aplicación principal...');
+                window.location.href = '/index.html';
+                return true;
+            }
+            return false;
+        }
+        
+        const elementosAVerificar = [
+            // Elementos principales
+            { id: 'appContainer', selector: '.app-container', tipo: 'querySelector' },
+            { id: 'mainContent', selector: '#mainContent', tipo: 'getElementById' },
+            { id: 'loadingScreen', selector: '#appLoading', tipo: 'getElementById' },
+            
+            // Navegación
+            { id: 'navDashboard', selector: '#navDashboard', tipo: 'getElementById' },
+            { id: 'navEmployees', selector: '#navEmployees', tipo: 'getElementById' },
+            { id: 'navAttendance', selector: '#navAttendance', tipo: 'getElementById' },
+            { id: 'navReports', selector: '#navReports', tipo: 'getElementById' },
+            { id: 'navPlanilla', selector: '#navPlanilla', tipo: 'getElementById' },
+            
+            // Dashboard
+            { id: 'dashboardView', selector: '#dashboardView', tipo: 'getElementById' },
+            { id: 'todayStats', selector: '#todayStats', tipo: 'getElementById' },
+            { id: 'dateSelector', selector: '#dateSelector', tipo: 'getElementById' },
+            
+            // Empleados
+            { id: 'employeesView', selector: '#employeesView', tipo: 'getElementById' },
+            { id: 'addEmployeeBtn', selector: '#addEmployeeBtn', tipo: 'getElementById' },
+            { id: 'employeesList', selector: '#employeesList', tipo: 'getElementById' },
+            
+            // Asistencia
+            { id: 'attendanceView', selector: '#attendanceView', tipo: 'getElementById' },
+            { id: 'attendanceDate', selector: '#attendanceDate', tipo: 'getElementById' },
+            { id: 'attendanceTable', selector: '#attendanceTable', tipo: 'getElementById' },
+            
+            // Reportes
+            { id: 'reportsView', selector: '#reportsView', tipo: 'getElementById' },
+            { id: 'reportStartDate', selector: '#reportStartDate', tipo: 'getElementById' },
+            { id: 'reportEndDate', selector: '#reportEndDate', tipo: 'getElementById' },
+            { id: 'generateReportBtn', selector: '#generateReportBtn', tipo: 'getElementById' },
+            { id: 'exportDataBtn', selector: '#exportDataBtn', tipo: 'getElementById' },
+            
+            // Planilla
+            { id: 'planillaView', selector: '#planillaView', tipo: 'getElementById' },
+            { id: 'planillaMonth', selector: '#planillaMonth', tipo: 'getElementById' },
+            { id: 'exportPlanillaExcel', selector: '#exportPlanillaExcel', tipo: 'getElementById' },
+            { id: 'planillaTable', selector: '#planillaTable', tipo: 'getElementById' },
+            
+            // Modales
+            { id: 'employeeModal', selector: '#employeeModal', tipo: 'getElementById' },
+            { id: 'employeeForm', selector: '#employeeForm', tipo: 'getElementById' },
+            { id: 'closeModal', selector: '#closeModal', tipo: 'getElementById' },
+            { id: 'cancelModal', selector: '#cancelModal', tipo: 'getElementById' },
+            
+            { id: 'attendanceModal', selector: '#attendanceModal', tipo: 'getElementById' },
+            { id: 'attendanceForm', selector: '#attendanceForm', tipo: 'getElementById' },
+            { id: 'closeAttendanceModal', selector: '#closeAttendanceModal', tipo: 'getElementById' },
+            { id: 'cancelAttendanceModal', selector: '#cancelAttendanceModal', tipo: 'getElementById' }
+        ];
+        
+        function checkElement(element) {
+            let foundElement = null;
+            
+            try {
+                if (element.tipo === 'querySelector') {
+                    foundElement = document.querySelector(element.selector);
+                } else if (element.tipo === 'getElementById') {
+                    foundElement = document.getElementById(element.id);
+                }
+                
+                return {
+                    id: element.id,
+                    selector: element.selector,
+                    tipo: element.tipo,
+                    found: foundElement !== null,
+                    element: foundElement
+                };
+            } catch (error) {
+                return {
+                    id: element.id,
+                    selector: element.selector,
+                    tipo: element.tipo,
+                    found: false,
+                    error: error.message
+                };
+            }
+        }
+        
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+            
+            const foundCount = results.filter(r => r.found).length;
+            const totalCount = results.length;
+            
+            // Resumen
+            const summary = document.createElement('div');
+            summary.className = 'summary';
+            summary.innerHTML = `
+                <h3>Resumen de Verificación</h3>
+                <p><strong>Elementos encontrados:</strong> ${foundCount} de ${totalCount}</p>
+                <p><strong>Porcentaje de éxito:</strong> ${Math.round((foundCount/totalCount)*100)}%</p>
+            `;
+            resultsContainer.appendChild(summary);
+            
+            // Lista de resultados
+            const resultsList = document.createElement('div');
+            resultsList.className = 'results-list';
+            
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = `result-item ${result.found ? 'success' : 'error'}`;
+                
+                const status = result.found ? '✅' : '❌';
+                const statusText = result.found ? 'Encontrado' : 'No encontrado';
+                
+                resultItem.innerHTML = `
+                    <div class="result-header">
+                        <span class="status">${status}</span>
+                        <span class="element-id">${result.id}</span>
+                        <span class="status-text">${statusText}</span>
+                    </div>
+                    <div class="result-details">
+                        <p><strong>Selector:</strong> <code>${result.selector}</code></p>
+                        <p><strong>Tipo:</strong> ${result.tipo}</p>
+                        ${result.error ? `<p><strong>Error:</strong> ${result.error}</p>` : ''}
+                    </div>
+                `;
+                
+                resultsList.appendChild(resultItem);
+            });
+            
+            resultsContainer.appendChild(resultsList);
+        }
+        
+        function runVerification() {
+            const results = [];
+            
+            // Verificar cada elemento
+            elementosAVerificar.forEach(element => {
+                const result = checkElement(element);
+                results.push(result);
+            });
+            
+            // Contar elementos encontrados
+            const successCount = results.filter(r => r.found).length;
+            
+            // Mostrar resultados
+            displayResults(results);
+            
+            // Mostrar acciones
+            const actionsDiv = document.getElementById('actions');
+            const actionButtonsDiv = document.getElementById('action-buttons');
+            
+            if (successCount >= 80) {
+                actionButtonsDiv.innerHTML = `
+                    <a href="/" class="btn btn-success">🌐 Usar Aplicación Principal</a>
+                    <a href="http://localhost:8080" class="btn btn-success">🔗 Abrir en localhost:8080</a>
+                `;
+            } else {
+                actionButtonsDiv.innerHTML = `
+                    <a href="diagnostico.html" class="btn btn-error">🔍 Página de Diagnóstico</a>
+                    <a href="test-app.html" class="btn">🧪 Página de Pruebas</a>
+                    <a href="/" class="btn">🌐 Ir a la Aplicación Principal</a>
+                `;
+            }
+            
+            actionsDiv.style.display = 'block';
+            
+            // Actualizar estado
+            const statusDiv = document.getElementById('status');
+            if (successCount === 100) {
+                statusDiv.innerHTML = '<h2 class="success">✅ Verificación completada - Todo está bien</h2>';
+            } else if (successCount >= 80) {
+                statusDiv.innerHTML = '<h2 class="warning">⚠️ Verificación completada - Problemas menores</h2>';
+            } else {
+                statusDiv.innerHTML = '<h2 class="error">❌ Verificación completada - Problemas graves</h2>';
+            }
+            
+            // Información de depuración
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.textContent = `URL actual: ${window.location.href}
+Protocolo: ${window.location.protocol}
+Host: ${window.location.host}
+Pathname: ${window.location.pathname}
+
+Elementos faltantes:
+${results.filter(r => !r.success).map(r => `- ${r.message}`).join('\n')}
+
+Elementos encontrados:
+${results.filter(r => r.success).map(r => `- ${r.message}`).join('\n')}`;
+        }
+        
+        // Ejecutar cuando se cargue la página
+        window.addEventListener('load', () => {
+            // Si no estamos en la aplicación principal, redirigir
+            if (redirectToMainApp()) {
+                return;
+            }
+            
+            // Si estamos en la aplicación principal, ejecutar verificación
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                runVerification();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

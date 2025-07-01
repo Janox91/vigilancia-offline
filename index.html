@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de Vigilancia</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Vigilancia">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Control de Vigilancia">
+    <meta name="msapplication-TileColor" content="#2196F3">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Sistema de control de servicio de personal de vigilancia. Registro de asistencia, ausentes, vacaciones, estrés, llegadas tardes, carpeta médica y cambios de guardia.">
+    <meta name="keywords" content="vigilancia, control, personal, asistencia, planilla, reportes">
+    <meta name="author" content="Sistema de Control de Vigilancia">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Control de Vigilancia">
+    <meta property="og:description" content="Sistema de control de servicio de personal de vigilancia">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="icons/icon-512x512.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Control de Vigilancia">
+    <meta name="twitter:description" content="Sistema de control de servicio de personal de vigilancia">
+    <meta name="twitter:image" content="icons/icon-512x512.png">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-152x152.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="app.js" as="script">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Prevent zoom on input focus (iOS) -->
+    <style>
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+        
+        /* Prevent text selection on buttons */
+        button {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Loading indicator */
+        .app-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .app-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="appLoading" class="app-loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Pantalla de ingreso con clave -->
+    <div id="loginOverlay" style="position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#181c1f;display:flex;align-items:center;justify-content:center;">
+        <form id="loginForm" style="background:#23272a;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 4px 24px #0008;display:flex;flex-direction:column;gap:1.2rem;min-width:300px;">
+            <h2 style="color:#00b2c6;text-align:center;">Ingreso</h2>
+            <div style="position:relative;">
+                <input type="password" id="loginPassword" autocomplete="off" style="padding:0.7rem 2.5rem 0.7rem 0.7rem;border-radius:8px;border:1px solid #00b2c6;font-size:1.1rem;color:#111;background:#fff;">
+                <button type="button" id="togglePassword" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;outline:none;cursor:pointer;padding:0;font-size:1.3em;color:#00b2c6;user-select:none;display:flex;align-items:center;">
+                    <span id="eyeIcon">
+                        <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="24" rx="20" ry="13" stroke="black" stroke-width="4"/><circle cx="24" cy="24" r="7" stroke="black" stroke-width="4"/></svg>
+                    </span>
+                </button>
+            </div>
+            <button type="submit" style="background:#00b2c6;color:#fff;font-weight:600;padding:0.7rem;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;">Ingresar</button>
+            <div id="loginError" style="color:#c62828;text-align:center;display:none;">Contraseña incorrecta</div>
+        </form>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <img src="icons/icon-upa16.png" alt="Logo UPA16" style="height:48px;margin-right:1rem;vertical-align:middle;">
+            <h1>Control de Vigilancia</h1>
+            <div class="header-actions">
+                <button id="addEmployeeBtn" class="btn-primary" aria-label="Agregar personal">+ Personal</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="app-nav" role="navigation" aria-label="Navegación principal">
+            <button class="nav-btn active" data-view="dashboard" aria-label="Dashboard">📊 Dashboard</button>
+            <button class="nav-btn" data-view="attendance" aria-label="Control de asistencia">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.4em;"><circle cx="12" cy="12" r="10" fill="none" stroke="#1976D2" stroke-width="2"/><path d="M8 12.5l3 3 5-5" fill="none" stroke="#1976D2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Asistencia
+            </button>
+            <button class="nav-btn" data-view="employees" aria-label="Gestión de personal">👥 Personal</button>
+            <button class="nav-btn" data-view="libro" aria-label="Libro de Novedades">📖 Libro de Novedades</button>
+            <button class="nav-btn" data-view="reports" aria-label="Reportes">📋 Reportes</button>
+            <button class="nav-btn" data-view="planilla" aria-label="Planilla mensual">🗓️ Planilla Mensual</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-main" role="main">
+            <!-- Dashboard View -->
+            <div id="dashboard" class="view active" role="region" aria-label="Dashboard">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card" role="region" aria-label="Total de personal">
+                        <h3>Total Personal</h3>
+                        <div class="card-number" id="totalEmployees" aria-live="polite">0</div>
+                    </div>
+                    <div class="dashboard-card" role="region" aria-label="Personal presente hoy">
+                        <h3>Presentes Hoy</h3>
+                        <div class="card-number" id="presentToday" aria-live="polite">0</div>
+                    </div>
+                    <div class="dashboard-card" role="region" aria-label="Personal ausente">
+                        <h3>Ausentes</h3>
+                        <div class="card-number" id="absentToday" aria-live="polite">0</div>
+                    </div>
+                    <div class="dashboard-card" role="region" aria-label="Personal de vacaciones">
+                        <h3>Vacaciones</h3>
+                        <div class="card-number" id="vacationToday" aria-live="polite">0</div>
+                    </div>
+                    <div class="dashboard-card" role="region" aria-label="Artículo 26 hoy">
+                        <h3>Artículo 26</h3>
+                        <div class="card-number" id="a26Today" aria-live="polite">0</div>
+                    </div>
+                </div>
+                <div class="dashboard-charts" style="margin:2rem 0;display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;">
+                    <div style="min-width:320px;max-width:480px;width:100%;background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+                        <h3 style="text-align:center;font-size:1.1rem;color:#1976D2;">Asistencia del Mes</h3>
+                        <canvas id="asistenciaChart" width="400" height="260" aria-label="Gráfica de asistencia" role="img"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-percentages" style="margin:2rem 0;">
+                    <h3 style="font-size:1.1rem;color:#1976D2;">Porcentaje de Asistencia</h3>
+                    <div id="asistenciaPorEmpleado" style="margin-bottom:1.5rem;"></div>
+                    <div id="asistenciaPorTurno"></div>
+                </div>
+                <div class="today-summary">
+                    <h3>Resumen de Hoy</h3>
+                    <div id="todaySummary" class="summary-list" role="list" aria-label="Lista de registros de hoy">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance View -->
+            <div id="attendance" class="view" role="region" aria-label="Control de asistencia">
+                <div class="attendance-header">
+                    <h2>Control de Asistencia</h2>
+                    <div class="date-selector">
+                        <label for="attendanceDate" class="sr-only">Seleccionar fecha</label>
+                        <input type="date" id="attendanceDate" class="date-input" aria-label="Fecha de asistencia">
+                    </div>
+                </div>
+                
+                <div class="attendance-list" id="attendanceList" role="list" aria-label="Lista de asistencia">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Employees View -->
+            <div id="employees" class="view" role="region" aria-label="Gestión de personal">
+                <div class="employees-header">
+                    <h2>Gestión de Personal</h2>
+                    <button id="addNewEmployeeBtn" class="btn-primary" aria-label="Agregar nuevo personal">+ Agregar Personal</button>
+                </div>
+                <div class="employee-filters" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;">
+                    <input type="text" id="employeeSearch" placeholder="Buscar por nombre o cargo..." style="padding:0.5rem 1rem;border-radius:8px;border:1px solid #00b2c6;min-width:200px;">
+                    <select id="employeeTurnoFilter" style="padding:0.5rem 1rem;border-radius:8px;border:1px solid #00b2c6;">
+                        <option value="">Todos los turnos</option>
+                        <option value="Día">Día</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Noche">Noche</option>
+                        <option value="SADOFE">SADOFE</option>
+                    </select>
+                </div>
+                <div class="employees-list" id="employeesList" role="list" aria-label="Lista de personal">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="reports" class="view" role="region" aria-label="Reportes">
+                <div class="reports-header">
+                    <h2>Reportes</h2>
+                    <div class="report-filters">
+                        <label for="reportStartDate" class="sr-only">Fecha de inicio</label>
+                        <input type="date" id="reportStartDate" class="date-input" placeholder="Fecha inicio" aria-label="Fecha de inicio del reporte">
+                        <label for="reportEndDate" class="sr-only">Fecha de fin</label>
+                        <input type="date" id="reportEndDate" class="date-input" placeholder="Fecha fin" aria-label="Fecha de fin del reporte">
+                        <button id="generateReportBtn" class="btn-primary" aria-label="Generar reporte">Generar Reporte</button>
+                    </div>
+                </div>
+                
+                <div class="report-results" id="reportResults" role="region" aria-label="Resultados del reporte">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Planilla Mensual View -->
+            <div id="planilla" class="view" role="region" aria-label="Planilla mensual">
+                <div class="planilla-header">
+                    <h2>Planilla Mensual de Novedades</h2>
+                    <div class="planilla-controls">
+                        <label for="planillaMonth">Mes:</label>
+                        <input type="month" id="planillaMonth" aria-label="Seleccionar mes para la planilla">
+                    </div>
+                </div>
+                <div class="planilla-leyenda" id="planillaLeyenda" role="region" aria-label="Leyenda de especificaciones">
+                    <!-- Leyenda de especificaciones -->
+                </div>
+                <div class="planilla-table-container" role="region" aria-label="Tabla de planilla mensual">
+                    <table class="planilla-table" id="planillaTable" role="table" aria-label="Planilla mensual de novedades">
+                        <!-- Se llena dinámicamente -->
+                    </table>
+                </div>
+            </div>
+
+            <!-- Libro de Novedades View -->
+            <div id="libro" class="view" role="region" aria-label="Libro de novedades">
+                <div class="libro-header" style="margin-bottom:1.5rem;">
+                    <h2>Libro de Novedades</h2>
+                    <div style="margin:1rem 0;">
+                        <input type="text" id="libroEmpleadoSearch" placeholder="Buscar empleado..." style="padding:0.5rem 1rem;border-radius:8px;border:1px solid #00b2c6;min-width:220px;">
+                        <select id="libroYear" style="padding:0.5rem 1rem;border-radius:8px;border:1px solid #00b2c6;margin-left:1rem;"></select>
+                    </div>
+                </div>
+                <div id="libroEmpleadoSelector" style="margin-bottom:1.5rem;"></div>
+                <div id="libroHistorial"></div>
+                <div id="libroResumen" style="margin-top:2rem;"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="employeeModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Personal</h3>
+                <button class="close-btn" id="closeModal" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <form id="employeeForm" role="form" aria-label="Formulario de personal">
+                <div class="form-group">
+                    <label for="employeeName">Nombre Completo:</label>
+                    <input type="text" id="employeeName" required aria-required="true" aria-describedby="nameHelp">
+                    <div id="nameHelp" class="sr-only">Ingrese el nombre completo del empleado</div>
+                </div>
+                <div class="form-group">
+                    <label for="employeePosition">Cargo:</label>
+                    <input type="text" id="employeePosition" value="Vigilante" aria-describedby="positionHelp">
+                    <div id="positionHelp" class="sr-only">Ingrese el cargo o posición del empleado</div>
+                </div>
+                <div class="form-group">
+                    <label for="employeeTurno">Turno:</label>
+                    <select id="employeeTurno" aria-describedby="turnoHelp">
+                        <option value="">Seleccionar turno</option>
+                        <option value="Día">Día</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Noche">Noche</option>
+                        <option value="SADOFE">SADOFE</option>
+                    </select>
+                    <div id="turnoHelp" class="sr-only">Seleccione el turno del empleado</div>
+                </div>
+                <div class="form-group">
+                    <label for="employeePhone">Teléfono:</label>
+                    <input type="tel" id="employeePhone" aria-describedby="phoneHelp">
+                    <div id="phoneHelp" class="sr-only">Ingrese el número de teléfono del empleado (opcional)</div>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-primary" aria-label="Guardar empleado">Guardar</button>
+                    <button type="button" class="btn-secondary" id="cancelModal" aria-label="Cancelar">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="attendanceModal" class="modal" role="dialog" aria-labelledby="attendanceModalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="attendanceModalTitle">Registrar Asistencia</h3>
+                <button class="close-btn" id="closeAttendanceModal" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <form id="attendanceForm" role="form" aria-label="Formulario de asistencia">
+                <div class="form-group">
+                    <label for="attendanceStatus">Estado:</label>
+                    <select id="attendanceStatus" required aria-required="true" aria-describedby="statusHelp">
+                        <option value="sin-asignar">Sin asignar</option>
+                        <option value="presente">Presente</option>
+                        <option value="ausente">Ausente</option>
+                        <option value="vacaciones">Vacaciones</option>
+                        <option value="estres">Estrés</option>
+                        <option value="llegada-tarde">Llegada Tarde</option>
+                        <option value="carpeta-medica">Carpeta Médica</option>
+                        <option value="cambio-guardia">Cambio de Guardia</option>
+                        <option value="A26">Artículo 26</option>
+                    </select>
+                    <div id="statusHelp" class="sr-only">Seleccione el estado de asistencia del empleado</div>
+                </div>
+                <div class="form-group" id="shiftChangeGroup" style="display: none;">
+                    <label for="shiftChangeType">Tipo de Cambio:</label>
+                    <select id="shiftChangeType" aria-describedby="shiftHelp">
+                        <option value="solo">Solo</option>
+                        <option value="con-companero">Con Compañero</option>
+                    </select>
+                    <div id="shiftHelp" class="sr-only">Seleccione el tipo de cambio de guardia</div>
+                </div>
+                <div class="form-group" id="companionGroup" style="display: none;">
+                    <label for="companionName">Compañero:</label>
+                    <select id="companionName" aria-describedby="companionHelp">
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                    <div id="companionHelp" class="sr-only">Seleccione el compañero para el cambio de guardia</div>
+                </div>
+                <div class="form-group">
+                    <label for="observations">Observaciones:</label>
+                    <textarea id="observations" rows="3" placeholder="Observaciones adicionales..." aria-describedby="obsHelp"></textarea>
+                    <div id="obsHelp" class="sr-only">Ingrese observaciones adicionales sobre la asistencia (opcional)</div>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-primary" aria-label="Guardar asistencia">Guardar</button>
+                    <button type="button" class="btn-secondary" id="cancelAttendanceModal" aria-label="Cancelar">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offline indicator -->
+    <div id="offlineIndicator" class="offline-indicator" style="display: none;" role="alert" aria-live="assertive">
+        <span>⚠️ Sin conexión a internet</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+    <script src="sw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Inline script for immediate loading -->
+    <script>
+        // Hide loading screen when app is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('appLoading');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }
+            }, 500);
+        });
+
+        // Offline/Online detection
+        window.addEventListener('online', function() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.style.display = 'block';
+            }
+        });
+
+        // Prevent zoom on double tap (iOS)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Add viewport height fix for mobile browsers
+        function setVH() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        window.addEventListener('resize', setVH);
+        setVH();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('loginOverlay');
+            const form = document.getElementById('loginForm');
+            const pass = document.getElementById('loginPassword');
+            const error = document.getElementById('loginError');
+            const toggle = document.getElementById('togglePassword');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            // SVGs para los iconos
+            const svgOpen = `<svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="24" rx="20" ry="13" stroke="black" stroke-width="4"/><circle cx="24" cy="24" r="7" stroke="black" stroke-width="4"/></svg>`;
+            const svgClosed = `<svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" fill="none"><path d="M8 28 Q24 40 40 28" stroke="black" stroke-width="4" fill="none"/><line x1="14" y1="30" x2="12" y2="36" stroke="black" stroke-width="4"/><line x1="24" y1="34" x2="24" y2="40" stroke="black" stroke-width="4"/><line x1="34" y1="30" x2="36" y2="36" stroke="black" stroke-width="4"/></svg>`;
+
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                if(pass.value === 'upa16hm7') {
+                    overlay.style.display = 'none';
+                    pass.value = '';
+                    error.style.display = 'none';
+                } else {
+                    error.style.display = 'block';
+                    pass.value = '';
+                    pass.focus();
+                }
+            };
+            pass.focus();
+            toggle.onclick = function() {
+                if (pass.type === 'password') {
+                    pass.type = 'text';
+                    eyeIcon.innerHTML = svgOpen;
+                } else {
+                    pass.type = 'password';
+                    eyeIcon.innerHTML = svgClosed;
+                }
+            };
+            // El icono inicial debe ser el cerrado
+            eyeIcon.innerHTML = svgClosed;
+        });
+    </script>
+
+    <!-- Screen reader only class -->
+    <style>
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .offline-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f44336;
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+            z-index: 10000;
+            font-weight: 500;
+        }
+
+        /* Use custom viewport height for mobile */
+        .app-container {
+            min-height: 100vh;
+            min-height: calc(var(--vh, 1vh) * 100);
+        }
+    </style>
+</body>
+</html> 

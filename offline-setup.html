@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalador Offline - Control de Vigilancia</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .steps {
+            text-align: left;
+            margin: 30px 0;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .step h3 {
+            color: #2196F3;
+            margin: 0 0 10px 0;
+        }
+        
+        .step p {
+            margin: 0;
+            color: #555;
+        }
+        
+        .download-btn {
+            background: #2196F3;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🛡️</div>
+        <h1>Control de Vigilancia</h1>
+        <p class="subtitle">Instalación Offline - Sin conexión a internet</p>
+        
+        <div class="warning">
+            <strong>⚠️ Importante:</strong> Esta aplicación funciona completamente offline. Una vez instalada, no necesitarás internet para usarla.
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <strong>App Nativa</strong>
+                <p>Se instala como una app normal</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <strong>100% Offline</strong>
+                <p>Funciona sin internet</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <strong>Datos Locales</strong>
+                <p>Información guardada en tu dispositivo</p>
+            </div>
+        </div>
+        
+        <div class="steps">
+            <h2>Instrucciones de Instalación:</h2>
+            
+            <div class="step">
+                <h3>📱 Android (Chrome)</h3>
+                <p>1. Abre Chrome en tu móvil<br>
+                2. Ve a la aplicación<br>
+                3. Toca el menú (⋮) → "Instalar aplicación"<br>
+                4. Confirma la instalación</p>
+            </div>
+            
+            <div class="step">
+                <h3>🍎 iPhone (Safari)</h3>
+                <p>1. Abre Safari en tu iPhone<br>
+                2. Ve a la aplicación<br>
+                3. Toca compartir (📤) → "Añadir a pantalla de inicio"<br>
+                4. Confirma la instalación</p>
+            </div>
+            
+            <div class="step">
+                <h3>💻 Computadora</h3>
+                <p>1. Abre el navegador<br>
+                2. Ve a la aplicación<br>
+                3. Instala como PWA desde el menú del navegador</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="index.html" class="download-btn">🚀 Ir a la Aplicación</a>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+            <p><strong>Funcionalidades incluidas:</strong></p>
+            <p>✅ Dashboard en tiempo real<br>
+            ✅ Control de asistencia<br>
+            ✅ Gestión de personal<br>
+            ✅ Reportes detallados<br>
+            ✅ Planilla mensual<br>
+            ✅ Exportación a Excel/PDF<br>
+            ✅ Funcionamiento offline completo</p>
+        </div>
+    </div>
+    
+    <script>
+        // Detectar si es móvil
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // Mostrar instrucciones específicas para móvil
+            console.log('Dispositivo móvil detectado');
+        }
+        
+        // Verificar si PWA está disponible
+        if ('serviceWorker' in navigator) {
+            console.log('PWA soportado');
+        }
+        
+        // Verificar si se puede instalar
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('PWA puede ser instalada');
+        });
+    </script>
+</body>
+</html> 

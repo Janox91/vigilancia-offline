@@ -1,0 +1,52 @@
+🛡️ CONTROL DE VIGILANCIA - USO OFFLINE
+==========================================
+
+📱 CÓMO USAR SIN INTERNET:
+
+OPCIÓN 1: PWA DIRECTA (MÁS FÁCIL)
+----------------------------------
+1. Copia TODA la carpeta a tu móvil
+2. Abre Chrome en tu móvil
+3. Ve a: file:///ruta/a/tu/carpeta/index.html
+4. Menú → "Instalar aplicación"
+5. ¡Listo! Funciona sin internet
+
+OPCIÓN 2: SERVIDOR PYTHON
+--------------------------
+1. Abre terminal/cmd en la carpeta
+2. Ejecuta: python servidor-simple.py
+3. Ve a: http://localhost:8080
+4. Desde móvil: http://[tu-ip]:8080
+5. Instala como PWA
+
+OPCIÓN 3: APK REAL
+-------------------
+1. Ejecuta: generar-apk.bat
+2. Sigue las instrucciones de PWA Builder
+3. Descarga e instala el APK
+
+📋 ARCHIVOS NECESARIOS:
+- index.html
+- app.js  
+- styles.css
+- manifest.json
+- sw.js
+- offline-setup.html
+- carpeta icons/ (opcional)
+
+🔧 SI NO FUNCIONA:
+- Verifica que todos los archivos estén presentes
+- Usa Chrome o Safari
+- Limpia caché del navegador
+- Reinstala la aplicación
+
+💾 DATOS:
+- Se guardan localmente en tu dispositivo
+- Haz respaldos con la función "Exportar"
+- Los datos se mantienen entre sesiones
+
+📞 SOPORTE:
+- Lee INSTRUCCIONES-OFFLINE.md para detalles
+- Lee README.md para documentación completa
+
+¡TU APLICACIÓN FUNCIONA 100% OFFLINE! 🛡️📱 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico - Control de Vigilancia</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+        .btn { 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background: #2196F3; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+        }
+        .btn:hover { background: #1976D2; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico - Control de Vigilancia</h1>
+    
+    <p>Esta página te ayudará a diagnosticar problemas en la aplicación principal.</p>
+    
+    <div id="instructions">
+        <h2>📋 Instrucciones:</h2>
+        <ol>
+            <li>Haz clic en "Ir a la aplicación principal"</li>
+            <li>Una vez en la aplicación, abre las herramientas de desarrollador (F12)</li>
+            <li>Ve a la pestaña Console</li>
+            <li>Ejecuta el comando de diagnóstico que aparece abajo</li>
+            <li>Comparte los resultados si hay errores</li>
+        </ol>
+    </div>
+    
+    <div id="diagnostic-code">
+        <h2>🔧 Código de Diagnóstico:</h2>
+        <p>Copia y pega este código en la consola del navegador (F12 → Console):</p>
+        <pre id="code">
+// Diagnóstico de elementos del DOM
+function checkElement(id, description) {
+    const element = document.getElementById(id);
+    if (element) {
+        console.log(`✅ ${description} (${id}) encontrado`);
+        return true;
+    } else {
+        console.log(`❌ ${description} (${id}) NO encontrado`);
+        return false;
+    }
+}
+
+function checkClass(className, description) {
+    const elements = document.querySelectorAll(className);
+    if (elements.length > 0) {
+        console.log(`✅ ${description} (${className}) encontrado - ${elements.length} elementos`);
+        return true;
+    } else {
+        console.log(`❌ ${description} (${className}) NO encontrado`);
+        return false;
+    }
+}
+
+console.log('🔍 Iniciando diagnóstico de elementos del DOM...');
+console.log('='.repeat(50));
+
+const results = [];
+
+// Verificar contenedores principales
+results.push(checkClass('.app-container', 'Contenedor principal'));
+results.push(checkClass('.app-header', 'Header de la aplicación'));
+results.push(checkClass('.app-nav', 'Navegación'));
+results.push(checkClass('.app-main', 'Contenido principal'));
+
+// Verificar vistas
+results.push(checkElement('dashboard', 'Vista Dashboard'));
+results.push(checkElement('attendance', 'Vista Asistencia'));
+results.push(checkElement('employees', 'Vista Personal'));
+results.push(checkElement('reports', 'Vista Reportes'));
+results.push(checkElement('planilla', 'Vista Planilla'));
+
+// Verificar botones principales
+results.push(checkElement('addEmployeeBtn', 'Botón Agregar Personal'));
+results.push(checkElement('exportBtn', 'Botón Exportar'));
+results.push(checkElement('addNewEmployeeBtn', 'Botón Agregar Nuevo Personal'));
+results.push(checkElement('generateReportBtn', 'Botón Generar Reporte'));
+
+// Verificar formularios
+results.push(checkElement('employeeForm', 'Formulario de Personal'));
+results.push(checkElement('attendanceForm', 'Formulario de Asistencia'));
+
+// Verificar inputs
+results.push(checkElement('attendanceDate', 'Input Fecha Asistencia'));
+results.push(checkElement('reportStartDate', 'Input Fecha Inicio Reporte'));
+results.push(checkElement('reportEndDate', 'Input Fecha Fin Reporte'));
+results.push(checkElement('planillaMonth', 'Input Mes Planilla'));
+
+// Verificar modales
+results.push(checkElement('employeeModal', 'Modal de Personal'));
+results.push(checkElement('attendanceModal', 'Modal de Asistencia'));
+
+console.log('='.repeat(50));
+
+// Resumen
+const successCount = results.filter(r => r).length;
+const totalCount = results.length;
+const successRate = Math.round((successCount / totalCount) * 100);
+
+console.log(`📊 Resumen: ${successCount}/${totalCount} elementos encontrados (${successRate}%)`);
+
+if (successRate === 100) {
+    console.log('🎉 ¡Todos los elementos están presentes! La aplicación debería funcionar correctamente.');
+} else {
+    console.log('⚠️ Faltan algunos elementos. Esto podría causar errores en la aplicación.');
+}
+
+console.log('🔍 Diagnóstico completado.');
+        </pre>
+        
+        <button class="btn">📋 Copiar Código</button>
+    </div>
+    
+    <div id="actions">
+        <h2>🚀 Acciones:</h2>
+        <a href="index.html" class="btn">🌐 Ir a la aplicación principal</a>
+        <a href="http://localhost:8080" class="btn">🔗 Abrir en localhost:8080</a>
+    </div>
+    
+    <script>
+        function copyCode() {
+            const codeElement = document.getElementById('code');
+            const text = codeElement.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Código copiado al portapapeles');
+            }).catch(() => {
+                // Fallback para navegadores que no soportan clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Código copiado al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html> 

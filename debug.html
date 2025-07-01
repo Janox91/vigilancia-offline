@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Control de Vigilancia</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #2196F3; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #1976D2; }
+        pre { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            border-left: 4px solid #2196F3;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Debug - Control de Vigilancia</h1>
+        
+        <p>Esta página ejecutará un script de depuración para identificar exactamente qué elemento está causando el error en la línea 95.</p>
+        
+        <div id="actions">
+            <a href="http://localhost:8080" class="btn">🌐 Ir a la Aplicación Principal</a>
+            <button class="btn">🔍 Ejecutar Debug</button>
+            <button class="btn">🗑️ Limpiar</button>
+        </div>
+        
+        <div id="output">
+            <h2>📋 Resultados del Debug:</h2>
+            <pre id="debug-output">Haz clic en "Ejecutar Debug" para comenzar...</pre>
+        </div>
+        
+        <div id="instructions">
+            <h2>📝 Instrucciones:</h2>
+            <ol>
+                <li>Haz clic en "Ir a la Aplicación Principal"</li>
+                <li>Una vez en la aplicación, abre las herramientas de desarrollador (F12)</li>
+                <li>Ve a la pestaña Console</li>
+                <li>Copia y pega el código de debug que aparece abajo</li>
+                <li>Comparte los resultados para identificar el problema</li>
+            </ol>
+        </div>
+        
+        <div id="debug-code">
+            <h2>🔧 Código de Debug:</h2>
+            <pre id="code">
+// Script de depuración para identificar el elemento problemático
+console.log('🔍 Iniciando depuración específica...');
+
+// Lista de elementos que se verifican en setupEventListeners
+const elementsToCheck = [
+    // Elementos principales
+    { name: 'appContainer', selector: '.app-container', type: 'querySelector' },
+    { name: 'mainContent', selector: '#mainContent', type: 'getElementById' },
+    { name: 'loadingScreen', selector: '#appLoading', type: 'getElementById' },
+    
+    // Navegación
+    { name: 'navDashboard', selector: '#navDashboard', type: 'getElementById' },
+    { name: 'navEmployees', selector: '#navEmployees', type: 'getElementById' },
+    { name: 'navAttendance', selector: '#navAttendance', type: 'getElementById' },
+    { name: 'navReports', selector: '#navReports', type: 'getElementById' },
+    { name: 'navPlanilla', selector: '#navPlanilla', type: 'getElementById' },
+    
+    // Dashboard
+    { name: 'dashboardView', selector: '#dashboardView', type: 'getElementById' },
+    { name: 'todayStats', selector: '#todayStats', type: 'getElementById' },
+    { name: 'dateSelector', selector: '#dateSelector', type: 'getElementById' },
+    
+    // Empleados
+    { name: 'employeesView', selector: '#employeesView', type: 'getElementById' },
+    { name: 'addEmployeeBtn', selector: '#addEmployeeBtn', type: 'getElementById' },
+    { name: 'employeesList', selector: '#employeesList', type: 'getElementById' },
+    
+    // Asistencia
+    { name: 'attendanceView', selector: '#attendanceView', type: 'getElementById' },
+    { name: 'attendanceDate', selector: '#attendanceDate', type: 'getElementById' },
+    { name: 'attendanceTable', selector: '#attendanceTable', type: 'getElementById' },
+    
+    // Reportes
+    { name: 'reportsView', selector: '#reportsView', type: 'getElementById' },
+    { name: 'reportStartDate', selector: '#reportStartDate', type: 'getElementById' },
+    { name: 'reportEndDate', selector: '#reportEndDate', type: 'getElementById' },
+    { name: 'generateReportBtn', selector: '#generateReportBtn', type: 'getElementById' },
+    { name: 'exportDataBtn', selector: '#exportDataBtn', type: 'getElementById' },
+    
+    // Planilla
+    { name: 'planillaView', selector: '#planillaView', type: 'getElementById' },
+    { name: 'planillaMonth', selector: '#planillaMonth', type: 'getElementById' },
+    { name: 'exportPlanillaExcel', selector: '#exportPlanillaExcel', type: 'getElementById' },
+    { name: 'planillaTable', selector: '#planillaTable', type: 'getElementById' },
+    
+    // Modales
+    { name: 'employeeModal', selector: '#employeeModal', type: 'getElementById' },
+    { name: 'employeeForm', selector: '#employeeForm', type: 'getElementById' },
+    { name: 'closeModal', selector: '#closeModal', type: 'getElementById' },
+    { name: 'cancelModal', selector: '#cancelModal', type: 'getElementById' },
+    
+    { name: 'attendanceModal', selector: '#attendanceModal', type: 'getElementById' },
+    { name: 'attendanceForm', selector: '#attendanceForm', type: 'getElementById' },
+    { name: 'closeAttendanceModal', selector: '#closeAttendanceModal', type: 'getElementById' },
+    { name: 'cancelAttendanceModal', selector: '#cancelAttendanceModal', type: 'getElementById' }
+];
+
+console.log('📋 Verificando elementos uno por uno...');
+console.log('='.repeat(60));
+
+let problematicElements = [];
+
+elementsToCheck.forEach((element, index) => {
+    let el = null;
+    
+    if (element.type === 'querySelectorAll') {
+        el = document.querySelectorAll(element.selector);
+        if (el && el.length > 0) {
+            console.log(`✅ ${index + 1}. ${element.name} (${element.selector}) - ${el.length} elementos encontrados`);
+        } else {
+            console.log(`❌ ${index + 1}. ${element.name} (${element.selector}) - NO encontrado`);
+            problematicElements.push(element);
+        }
+    } else {
+        el = document.getElementById(element.selector.substring(1));
+        if (el) {
+            console.log(`✅ ${index + 1}. ${element.name} (${element.selector}) - encontrado`);
+        } else {
+            console.log(`❌ ${index + 1}. ${element.name} (${element.selector}) - NO encontrado`);
+            problematicElements.push(element);
+        }
+    }
+});
+
+console.log('='.repeat(60));
+
+if (problematicElements.length === 0) {
+    console.log('🎉 ¡Todos los elementos están presentes!');
+} else {
+    console.log(`⚠️ Elementos problemáticos encontrados: ${problematicElements.length}`);
+    problematicElements.forEach((element, index) => {
+        console.log(`   ${index + 1}. ${element.name} (${element.selector})`);
+    });
+}
+
+console.log('🔍 Depuración completada.');
+            </pre>
+            <button class="btn">📋 Copiar Código</button>
+        </div>
+    </div>
+    
+    <script>
+        function runDebug() {
+            const output = document.getElementById('debug-output');
+            output.textContent = 'Ejecutando debug...\n\n';
+            
+            // Simular la ejecución del debug
+            setTimeout(() => {
+                output.textContent += '🔍 Iniciando depuración específica...\n';
+                output.textContent += '📋 Verificando elementos uno por uno...\n';
+                output.textContent += '='.repeat(60) + '\n';
+                output.textContent += '❌ Esta página no tiene los elementos de la aplicación principal\n';
+                output.textContent += '🌐 Ve a http://localhost:8080 y ejecuta el código de debug allí\n';
+                output.textContent += '='.repeat(60) + '\n';
+                output.textContent += '🔍 Depuración completada.\n';
+            }, 1000);
+        }
+        
+        function clearOutput() {
+            document.getElementById('debug-output').textContent = 'Haz clic en "Ejecutar Debug" para comenzar...';
+        }
+        
+        function copyCode() {
+            const codeElement = document.getElementById('code');
+            const text = codeElement.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Código copiado al portapapeles');
+            }).catch(() => {
+                // Fallback para navegadores que no soportan clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Código copiado al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html> 
