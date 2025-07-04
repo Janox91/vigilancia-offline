@@ -105,6 +105,7 @@
     </style>
 </head>
 <body>
+    <div id="feedbackMessage" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:1em 2em;border-radius:8px;font-weight:600;font-size:1.1em;"></div>
     <!-- Loading Screen -->
     <div id="appLoading" class="app-loading">
         <div class="loading-spinner"></div>
@@ -240,6 +241,10 @@
                         <input type="date" id="reportStartDate" class="date-input" placeholder="Fecha inicio" aria-label="Fecha de inicio del reporte">
                         <label for="reportEndDate" class="sr-only">Fecha de fin</label>
                         <input type="date" id="reportEndDate" class="date-input" placeholder="Fecha fin" aria-label="Fecha de fin del reporte">
+                        <select id="reportEmployeeSelect" style="padding:0.5rem 1rem;border-radius:8px;border:1px solid #00b2c6;min-width:180px;margin-left:1rem;">
+                            <option value="">Todos</option>
+                            <!-- Opciones de empleados se llenarán dinámicamente -->
+                        </select>
                         <button id="generateReportBtn" class="btn-primary" aria-label="Generar reporte">Generar Reporte</button>
                     </div>
                 </div>
@@ -362,6 +367,14 @@
                         <!-- Se llena dinámicamente -->
                     </select>
                     <div id="companionHelp" class="sr-only">Seleccione el compañero para el cambio de guardia</div>
+                </div>
+                <div class="form-group" id="shiftChangeDatesGroup" style="display: none;">
+                    <label for="shiftChangeStart">Fecha de cambio:</label>
+                    <input type="date" id="shiftChangeStart" aria-describedby="shiftChangeStartHelp">
+                    <div id="shiftChangeStartHelp" class="sr-only">Fecha en que inicia el cambio de guardia</div>
+                    <label for="shiftChangeEnd" style="margin-top:0.5em;">Fecha de devolución:</label>
+                    <input type="date" id="shiftChangeEnd" aria-describedby="shiftChangeEndHelp">
+                    <div id="shiftChangeEndHelp" class="sr-only">Fecha en que se devuelve la guardia</div>
                 </div>
                 <div class="form-group">
                     <label for="observations">Observaciones:</label>

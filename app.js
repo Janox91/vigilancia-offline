@@ -1,6 +1,6 @@
 // --- Códigos de la planilla mensual ---
 const PLANILLA_CODES = [
-    { code: 'G', label: 'Guardia Fija 10hs', colorClass: 'planilla-G' },
+    { code: 'G', label: 'Guardia Fija', colorClass: 'planilla-G' },
     { code: 'gr', label: 'Guardia Rotativa', colorClass: 'planilla-gr' },
     { code: 'CM', label: 'Carpeta Médica', colorClass: 'planilla-CM' },
     { code: '28', label: 'Ausente', colorClass: 'planilla-28' },
@@ -394,6 +394,17 @@ class VigilanciaApp {
         this.editingEmployeeId = null;
     }
 
+    showFeedbackMessage(message, type = 'success') {
+        const el = document.getElementById('feedbackMessage');
+        if (!el) return;
+        el.textContent = message;
+        el.style.display = 'block';
+        el.style.background = type === 'success' ? '#d4f7dc' : '#ffd6d6';
+        el.style.color = type === 'success' ? '#1b5e20' : '#b71c1c';
+        el.style.border = type === 'success' ? '2px solid #43a047' : '2px solid #e53935';
+        setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
     saveEmployee() {
         const name = document.getElementById('employeeName').value.trim();
         const position = document.getElementById('employeePosition').value.trim();
@@ -435,15 +446,26 @@ class VigilanciaApp {
         this.renderEmployees();
         this.updateDashboard();
         this.renderAttendance();
+        this.showFeedbackMessage(this.editingEmployeeId ? 'Empleado actualizado correctamente.' : 'Empleado agregado correctamente.', 'success');
     }
 
     deleteEmployee(employeeId) {
-        if (confirm('¿Está seguro de que desea eliminar este empleado?')) {
+        const employee = this.employees.find(emp => emp.id === employeeId);
+        if (!employee) return;
+        if (confirm(`¿Está seguro de que desea eliminar a ${employee.name}? Esta acción no se puede deshacer y eliminará todos sus registros de asistencia.`)) {
             this.employees = this.employees.filter(emp => emp.id !== employeeId);
+            // Eliminar asistencias asociadas
+            Object.keys(this.attendance).forEach(key => {
+                if (key.startsWith(employeeId + '_')) delete this.attendance[key];
+            });
             this.saveToStorage('employees', this.employees);
+            this.saveToStorage('attendance', this.attendance);
             this.renderEmployees();
             this.updateDashboard();
             this.renderAttendance();
+            this.showFeedbackMessage('Empleado y registros eliminados correctamente.', 'success');
+        } else {
+            this.showFeedbackMessage('Eliminación cancelada.', 'error');
         }
     }
 
@@ -511,6 +533,8 @@ class VigilanciaApp {
             document.getElementById('shiftChangeType').value = existingRecord.shiftChangeType || 'solo';
             document.getElementById('companionName').value = existingRecord.companionId || '';
             document.getElementById('observations').value = existingRecord.observations || '';
+            document.getElementById('shiftChangeStart').value = existingRecord.shiftChangeStart || '';
+            document.getElementById('shiftChangeEnd').value = existingRecord.shiftChangeEnd || '';
         } else {
             document.getElementById('attendanceForm').reset();
         }
@@ -540,6 +564,7 @@ class VigilanciaApp {
     handleAttendanceStatusChange(status) {
         const shiftChangeGroup = document.getElementById('shiftChangeGroup');
         const companionGroup = document.getElementById('companionGroup');
+        const shiftChangeDatesGroup = document.getElementById('shiftChangeDatesGroup');
 
         if (shiftChangeGroup && companionGroup) {
             if (status === 'cambio-guardia') {
@@ -549,6 +574,9 @@ class VigilanciaApp {
                 shiftChangeGroup.style.display = 'none';
                 companionGroup.style.display = 'none';
             }
+        }
+        if (shiftChangeDatesGroup) {
+            shiftChangeDatesGroup.style.display = (status === 'cambio-guardia') ? 'block' : 'none';
         }
     }
 
@@ -560,6 +588,8 @@ class VigilanciaApp {
         const shiftChangeType = document.getElementById('shiftChangeType').value;
         const companionId = document.getElementById('companionName').value;
         const observations = document.getElementById('observations').value.trim();
+        const shiftChangeStart = document.getElementById('shiftChangeStart').value;
+        const shiftChangeEnd = document.getElementById('shiftChangeEnd').value;
 
         if (!employeeId || !date || !status) {
             alert('Por favor complete todos los campos obligatorios');
@@ -579,6 +609,8 @@ class VigilanciaApp {
             if (shiftChangeType === 'con-companero' && companionId) {
                 record.companionId = companionId;
             }
+            record.shiftChangeStart = shiftChangeStart;
+            record.shiftChangeEnd = shiftChangeEnd;
         }
 
         this.setAttendanceRecord(employeeId, date, record);
@@ -587,6 +619,7 @@ class VigilanciaApp {
         this.closeAttendanceModal();
         this.renderAttendance();
         this.updateDashboard();
+        this.showFeedbackMessage('Asistencia guardada correctamente.', 'success');
     }
 
     getAttendanceRecord(employeeId, date) {
@@ -754,7 +787,11 @@ class VigilanciaApp {
     renderReports() {
         const container = document.getElementById('reportResults');
         if (!container) return;
-        
+        // Llenar select de empleados
+        const select = document.getElementById('reportEmployeeSelect');
+        if (select) {
+            select.innerHTML = '<option value="">Todos</option>' + this.employees.map(emp => `<option value="${emp.id}">${emp.name}</option>`).join('');
+        }
         container.innerHTML = `
             <div class="summary-item">
                 <p>Seleccione un rango de fechas y haga clic en "Generar Reporte" para ver los resultados.</p>
@@ -765,13 +802,26 @@ class VigilanciaApp {
     generateReport() {
         const startDate = document.getElementById('reportStartDate')?.value;
         const endDate = document.getElementById('reportEndDate')?.value;
-        
+        const employeeId = document.getElementById('reportEmployeeSelect')?.value;
         if (!startDate || !endDate) {
             alert('Por favor seleccione un rango de fechas');
             return;
         }
-
-        const report = this.generateAttendanceReport(startDate, endDate);
+        let report = this.generateAttendanceReport(startDate, endDate);
+        if (employeeId) {
+            // Filtrar solo el empleado seleccionado
+            report.employees = report.employees.filter(e => e.id === employeeId);
+            // Recalcular resumen general solo para ese empleado
+            report.summary.byStatus = {};
+            report.summary.totalRecords = 0;
+            report.employees.forEach(emp => {
+                Object.keys(emp.totals).forEach(status => {
+                    if (!report.summary.byStatus[status]) report.summary.byStatus[status] = 0;
+                    report.summary.byStatus[status] += emp.totals[status];
+                    report.summary.totalRecords += emp.totals[status];
+                });
+            });
+        }
         this.displayReport(report);
     }
 
@@ -972,20 +1022,17 @@ class VigilanciaApp {
         for (let day = 1; day <= daysInMonth; day++) {
             html += `<th>${day}</th>`;
         }
-        html += '<th>Observaciones</th></tr></thead><tbody>';
+        html += '</tr></thead><tbody>';
 
         this.employees.filter(emp => selectedIds.includes(emp.id)).forEach(employee => {
             html += `<tr><td>${employee.name}</td><td>${employee.turno || ''}</td>`;
-            let obsArr = [];
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${month.padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 const record = this.getAttendanceRecord(employee.id, dateStr);
                 const code = this.getPlanillaCode(record);
-                let obs = record && record.observations ? record.observations : '';
-                if (obs) obsArr.push(`${day}: ${obs}`);
-                html += `<td class="${code.colorClass}">${code.code}${obs ? '<br><span title="'+obs+'">📝</span><div style=\"font-size:0.7em;color:#444;\">'+obs+'</div>' : ''}</td>`;
+                html += `<td class="${code.colorClass}">${code.code}</td>`;
             }
-            html += `<td style="font-size:0.85em;">${obsArr.length ? obsArr.join('<br>') : ''}</td></tr>`;
+            html += `</tr>`;
         });
         html += '</tbody>';
         container.innerHTML = html;
@@ -1069,10 +1116,12 @@ class VigilanciaApp {
                 ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: this.employees.length, c: headers.length - 1 } });
                 // Descargar archivo
                 XLSX.writeFile(workbook, `planilla-vigilancia-${year}-${month}.xlsx`);
+                this.showFeedbackMessage('Planilla exportada correctamente.', 'success');
             };
             reader.readAsArrayBuffer(file);
         } catch (error) {
             console.error('Error al exportar a Excel:', error);
+            this.showFeedbackMessage('Error al exportar a Excel.', 'error');
             alert('Error al exportar a Excel. Verifique su conexión a internet.');
         }
     }
@@ -1092,6 +1141,7 @@ class VigilanciaApp {
         a.download = `control-vigilancia-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
+        this.showFeedbackMessage('Datos exportados correctamente.', 'success');
     }
 
     exportReportToPDF(report) {
@@ -1250,9 +1300,12 @@ class VigilanciaApp {
 
     // Lógica para el Libro de Novedades
     abrirLibroEmpleado(employeeId) {
-        // Cambia a la vista libro y selecciona el empleado
         this.switchView('libro');
+        // Seleccionar el año actual por defecto
+        const year = document.getElementById('libroYear')?.value || (new Date().getFullYear().toString());
+        this.selectedLibroEmpleadoId = employeeId;
         this.renderLibroEmpleadoSelector(employeeId);
+        this.renderLibroHistorial(employeeId, year);
     }
     setupLibroView() {
         // Llenar años disponibles
@@ -1283,11 +1336,24 @@ class VigilanciaApp {
             document.getElementById('libroResumen').innerHTML = '';
             return;
         }
+        if (typeof this.selectedLibroEmpleadoId === 'undefined') this.selectedLibroEmpleadoId = null;
         container.innerHTML = filtered.map(emp =>
-            `<button class="btn-primary btn-small" style="margin:0.2em 0.5em 0.2em 0;${selectedId===emp.id?'background:#1976D2;color:#fff;':''}" onclick="app.renderLibroHistorial('${emp.id}', '${year}')">${emp.name}</button>`
+            `<button class="btn-primary btn-small" style="margin:0.2em 0.5em 0.2em 0;${this.selectedLibroEmpleadoId===emp.id?'background:#1976D2;color:#fff;':''}" onclick="app.toggleLibroEmpleado('${emp.id}', '${year}')">${emp.name}</button>`
         ).join('');
         // Si hay uno seleccionado, mostrar su historial
-        if (selectedId) this.renderLibroHistorial(selectedId, year);
+        if (this.selectedLibroEmpleadoId) this.renderLibroHistorial(this.selectedLibroEmpleadoId, year);
+    }
+    toggleLibroEmpleado(employeeId, year) {
+        if (this.selectedLibroEmpleadoId === employeeId) {
+            // Cerrar
+            this.selectedLibroEmpleadoId = null;
+            document.getElementById('libroHistorial').innerHTML = '';
+            document.getElementById('libroResumen').innerHTML = '';
+        } else {
+            // Abrir
+            this.selectedLibroEmpleadoId = employeeId;
+            this.renderLibroEmpleadoSelector(employeeId);
+        }
     }
     renderLibroHistorial(employeeId, year) {
         const historialDiv = document.getElementById('libroHistorial');
@@ -1305,14 +1371,23 @@ class VigilanciaApp {
             const daysInMonth = new Date(year, m, 0).getDate();
             for(let d=1;d<=daysInMonth;d++){
                 const dateStr = `${year}-${m.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
-                const rec = this.attendance[employeeId]?.[dateStr];
+                const rec = this.attendance[`${employeeId}_${dateStr}`];
                 if(rec){
                     const status = rec.status;
                     totales[status] = (totales[status]||0)+1;
+                    let obs = rec.observations||'';
+                    if (status === 'cambio-guardia') {
+                        let compName = '';
+                        if (rec.companionId) {
+                            const comp = this.employees.find(e=>e.id===rec.companionId);
+                            compName = comp ? comp.name : '';
+                        }
+                        obs = `Tipo: ${rec.shiftChangeType==='con-companero'?'Con Compañero':'Solo'}` + (compName?`<br>Compañero: ${compName}`:'') + (rec.shiftChangeStart?`<br>Fecha cambio: ${rec.shiftChangeStart}`:'') + (rec.shiftChangeEnd?`<br>Fecha devolución: ${rec.shiftChangeEnd}`:'');
+                    }
                     rows.push({
                         fecha: dateStr,
                         status: this.getStatusText(status),
-                        observaciones: rec.observations||''
+                        observaciones: obs
                     });
                 }
             }
