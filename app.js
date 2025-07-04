@@ -121,10 +121,21 @@ class VigilanciaApp {
         this.startY = 0;
         this.endX = 0;
         this.endY = 0;
+        
+        // Configuración de login
+        this.isLoggedIn = this.loadFromStorage('isLoggedIn') || false;
+        this.loginPassword = 'upa16'; // Contraseña por defecto
+        
         this.init();
     }
 
     init() {
+        // Verificar login antes de inicializar
+        if (!this.isLoggedIn) {
+            this.setupLogin();
+            return;
+        }
+        
         this.setupEventListeners();
         this.setupDateInputs();
         this.updateDashboard();
@@ -133,6 +144,122 @@ class VigilanciaApp {
         this.renderPlanillaLeyenda();
         this.renderPlanilla();
         this.setupLibroView();
+        
+        // Ocultar pantalla de carga
+        const loadingScreen = document.getElementById('appLoading');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => loadingScreen.style.display = 'none', 300);
+        }
+    }
+
+    setupLogin() {
+        const loginForm = document.getElementById('loginForm');
+        const loginPassword = document.getElementById('loginPassword');
+        const togglePassword = document.getElementById('togglePassword');
+        const loginError = document.getElementById('loginError');
+        const loginOverlay = document.getElementById('loginOverlay');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
+        }
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', () => {
+                this.togglePasswordVisibility();
+            });
+        }
+
+        // Permitir login con Enter
+        if (loginPassword) {
+            loginPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleLogin();
+                }
+            });
+        }
+    }
+
+    handleLogin() {
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
+        const loginOverlay = document.getElementById('loginOverlay');
+
+        if (loginPassword && loginPassword.value === this.loginPassword) {
+            // Login exitoso
+            this.isLoggedIn = true;
+            this.saveToStorage('isLoggedIn', true);
+            
+            // Ocultar overlay de login
+            if (loginOverlay) {
+                loginOverlay.style.display = 'none';
+            }
+            
+            // Inicializar la aplicación
+            this.setupEventListeners();
+            this.setupDateInputs();
+            this.updateDashboard();
+            this.renderEmployees();
+            this.renderAttendance();
+            this.renderPlanillaLeyenda();
+            this.renderPlanilla();
+            this.setupLibroView();
+            
+            // Ocultar pantalla de carga
+            const loadingScreen = document.getElementById('appLoading');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => loadingScreen.style.display = 'none', 300);
+            }
+            
+            this.showFeedbackMessage('¡Bienvenido al sistema de vigilancia!', 'success');
+        } else {
+            // Login fallido
+            if (loginError) {
+                loginError.style.display = 'block';
+            }
+            if (loginPassword) {
+                loginPassword.value = '';
+                loginPassword.focus();
+            }
+        }
+    }
+
+    togglePasswordVisibility() {
+        const loginPassword = document.getElementById('loginPassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOpen = document.getElementById('eyeOpen');
+
+        if (loginPassword && eyeIcon && eyeOpen) {
+            if (loginPassword.type === 'password') {
+                loginPassword.type = 'text';
+                eyeOpen.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 4C12 4 2 12 2 24s10 20 22 20 22-8 22-20S36 4 24 4z" stroke="black" stroke-width="4"/>
+                        <path d="M24 12c-6.6 0-12 5.4-12 12s5.4 12 12 12 12-5.4 12-12-5.4-12-12-12z" stroke="black" stroke-width="4"/>
+                        <path d="M24 18c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z" stroke="black" stroke-width="4"/>
+                        <line x1="6" y1="6" x2="42" y2="42" stroke="black" stroke-width="4"/>
+                    </svg>
+                `;
+            } else {
+                loginPassword.type = 'password';
+                eyeOpen.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" fill="none">
+                        <ellipse cx="24" cy="24" rx="20" ry="13" stroke="black" stroke-width="4"/>
+                        <circle cx="24" cy="24" r="7" stroke="black" stroke-width="4"/>
+                    </svg>
+                `;
+            }
+        }
+    }
+
+    logout() {
+        this.isLoggedIn = false;
+        this.saveToStorage('isLoggedIn', false);
+        location.reload();
     }
 
     setupEventListeners() {
@@ -181,6 +308,7 @@ class VigilanciaApp {
             // Botones del header
             safeAddEventListener('addEmployeeBtn', 'click', () => this.openEmployeeModal(), 'Botón Agregar Personal');
             safeAddEventListener('exportBtn', 'click', () => this.exportData(), 'Botón Exportar');
+            safeAddEventListener('logoutBtn', 'click', () => this.logout(), 'Botón Logout');
 
             // Formularios
             safeAddEventListener('employeeForm', 'submit', (e) => {
