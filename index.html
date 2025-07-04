@@ -524,5 +524,15 @@
             min-height: calc(var(--vh, 1vh) * 100);
         }
     </style>
+
+    <!-- Modal de novedad de planilla -->
+    <div id="planillaModal" class="modal" style="display:none;z-index:10000;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+      <div class="modal-content" style="background:#fff;padding:2rem 1.5rem;border-radius:12px;max-width:400px;width:90%;box-shadow:0 4px 24px #0008;position:relative;">
+        <button id="closePlanillaModal" style="position:absolute;top:0.5rem;right:0.5rem;background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        <h3 id="planillaModalTitle" style="margin-bottom:1rem;font-size:1.2rem;color:#1976D2;text-align:center;">Detalle de Novedad</h3>
+        <div id="planillaModalBody" style="font-size:1.05rem;color:#222;text-align:center;"></div>
+      </div>
+    </div>
+
 </body>
 </html> 

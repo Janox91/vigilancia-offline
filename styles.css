@@ -1369,4 +1369,90 @@ select, select option {
 input[type="text"] {
     color: #111 !important;
     background: #fff !important;
+}
+
+/* Modal de novedad de planilla */
+#planillaModal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(24,28,31,0.55);
+  backdrop-filter: blur(2px);
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModalBg 0.25s;
+}
+
+#planillaModal .modal-content {
+  background: #fff;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border-radius: 18px;
+  max-width: 400px;
+  width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  position: relative;
+  animation: modalPopIn 0.3s cubic-bezier(.23,1.01,.32,1);
+  border: 1.5px solid #00b2c6;
+}
+
+#planillaModal h3 {
+  color: #1976D2;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+#planillaModalBody {
+  font-size: 1.08rem;
+  color: #222;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+#closePlanillaModal {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #1976D2;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.2s;
+  z-index: 2;
+  line-height: 1;
+}
+#closePlanillaModal:hover {
+  color: #c62828;
+  background: rgba(0,0,0,0.04);
+  border-radius: 50%;
+}
+
+@keyframes fadeInModalBg {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalPopIn {
+  0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  #planillaModal .modal-content {
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
+    max-width: 98vw;
+    font-size: 0.98rem;
+  }
+  #planillaModal h3 {
+    font-size: 1.05rem;
+  }
+  #closePlanillaModal {
+    font-size: 1.5rem;
+    top: 0.4rem;
+    right: 0.4rem;
+  }
 } 

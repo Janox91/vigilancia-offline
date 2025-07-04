@@ -151,6 +151,30 @@ class VigilanciaApp {
             loadingScreen.classList.add('hidden');
             setTimeout(() => loadingScreen.style.display = 'none', 300);
         }
+
+        // Event listeners para cerrar el modal de planilla
+        const closeBtn = document.getElementById('closePlanillaModal');
+        const modal = document.getElementById('planillaModal');
+        if (closeBtn && modal) {
+            closeBtn.onclick = (e) => {
+                modal.style.display = 'none';
+            };
+            // Cerrar al hacer click fuera del contenido
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            };
+        }
+
+        // Agregar event listeners a las celdas con novedad
+        document.querySelectorAll('.planilla-novedad-cell').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                const emp = cell.getAttribute('data-employee');
+                const date = cell.getAttribute('data-date');
+                const status = cell.getAttribute('data-status');
+                const obs = cell.getAttribute('data-obs');
+                this.showPlanillaModal(emp, date, status, obs);
+            });
+        });
     }
 
     setupLogin() {
@@ -1158,7 +1182,16 @@ class VigilanciaApp {
                 const dateStr = `${year}-${month.padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 const record = this.getAttendanceRecord(employee.id, dateStr);
                 const code = this.getPlanillaCode(record);
-                html += `<td class="${code.colorClass}">${code.code}</td>`;
+                let cellContent = code.code;
+                let cellAttrs = '';
+                if (code.code !== '-') {
+                    // Guardar info relevante en data-atributos
+                    const obs = record && record.observations ? record.observations.replace(/"/g, '&quot;') : '';
+                    cellAttrs = `data-employee="${employee.name}" data-date="${dateStr}" data-status="${this.getStatusText(record?.status)}" data-obs="${obs}" class="${code.colorClass} planilla-novedad-cell" style="cursor:pointer;"`;
+                } else {
+                    cellAttrs = `class="${code.colorClass}"`;
+                }
+                html += `<td ${cellAttrs}>${cellContent}</td>`;
             }
             html += `</tr>`;
         });
@@ -1170,6 +1203,17 @@ class VigilanciaApp {
         if (planillaHeader) {
             planillaHeader.textContent = `Planilla Mensual de Novedades - ${monthName}`;
         }
+
+        // Agregar event listeners a las celdas con novedad
+        container.querySelectorAll('.planilla-novedad-cell').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                const emp = cell.getAttribute('data-employee');
+                const date = cell.getAttribute('data-date');
+                const status = cell.getAttribute('data-status');
+                const obs = cell.getAttribute('data-obs');
+                this.showPlanillaModal(emp, date, status, obs);
+            });
+        });
     }
 
     getPlanillaCode(record) {
@@ -1187,6 +1231,17 @@ class VigilanciaApp {
             'A26': { code: 'A26', colorClass: 'planilla-A26' }
         };
         return statusMap[record.status] || { code: '-', colorClass: 'planilla-sin-asignar' };
+    }
+
+    showPlanillaModal(employee, date, status, obs) {
+        const modal = document.getElementById('planillaModal');
+        const title = document.getElementById('planillaModalTitle');
+        const body = document.getElementById('planillaModalBody');
+        if (modal && title && body) {
+            title.textContent = `Novedad de ${employee} - ${date}`;
+            body.innerHTML = `<b>Estado:</b> ${status || '-'}<br><b>Observaciones:</b> ${obs || 'Sin observaciones'}`;
+            modal.style.display = 'flex';
+        }
     }
 
     // Exportación de planilla
